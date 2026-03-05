@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Tương tác: Động năng - Thế năng</title>
+    <title>Game KHTN 9: Động năng - Thế năng</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Cấu hình MathJax 3 để nhận diện biểu thức toán học -->
     <script>
@@ -13,15 +14,13 @@
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             },
-            startup: {
-                typeset: false
-            }
+            startup: { typeset: false }
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; }
         .gold-text { color: #d4af37; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
         .card { background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -31,11 +30,18 @@
         .option-card { cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .option-card:hover { border-color: #2d6a4f; background-color: #f0fff4; }
         .option-selected { border-color: #2d6a4f; background-color: #e6fffa; }
+        .table-header { background-color: #1f2937; color: white; }
+        .table-row:hover { background-color: #f3f4f6; }
+        .modal { background-color: rgba(0,0,0,0.5); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4">
+<body id="main-body" class="min-h-screen flex flex-col items-center p-4">
 
-    <!-- Screen: Login -->
+    <!-- ========================================== -->
+    <!-- PHẦN 1: GIAO DIỆN HỌC SINH                 -->
+    <!-- ========================================== -->
+
+    <!-- Screen: Login (Học sinh) -->
     <div id="screen-login" class="w-full max-w-md mt-10">
         <div class="text-center mb-6">
             <div class="inline-block relative">
@@ -43,7 +49,7 @@
                 <span class="absolute -top-2 -right-2 text-3xl">✏️</span>
             </div>
             <h1 class="text-3xl font-bold gold-text mt-4 italic uppercase">Động năng - Thế năng</h1>
-            <p class="text-gray-600">Trò chơi tương tác KHTN 9</p>
+            <p class="text-gray-600 font-medium">Kiểm tra KHTN 9 (Trắc nghiệm tương tác)</p>
         </div>
         <div class="card p-8">
             <div class="space-y-4">
@@ -65,16 +71,21 @@
                         <input type="text" id="input-school" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
                     </div>
                 </div>
-                <button onclick="startGame()" class="w-full btn-green py-3 rounded-lg font-bold text-lg mt-4">BẮT ĐẦU CHƠI</button>
+                <button onclick="startGame()" class="w-full btn-green py-3 rounded-lg font-bold text-lg mt-4 shadow-lg">BẮT ĐẦU CHƠI</button>
+            </div>
+            
+            <!-- Nút vào khu vực Giáo viên -->
+            <div class="mt-6 text-center border-t pt-4">
+                <button onclick="showTeacherAuth()" class="text-gray-400 hover:text-blue-600 text-sm font-medium transition"><i class="fas fa-user-shield mr-1"></i> Khu vực Giáo viên</button>
             </div>
         </div>
     </div>
 
     <!-- Screen: Game -->
-    <div id="screen-game" class="w-full max-w-2xl hidden flex flex-col">
+    <div id="screen-game" class="w-full max-w-2xl hidden flex-col">
         <div class="flex justify-between items-center mb-4 text-sm text-gray-600 border-b pb-2">
-            <div id="student-info-display"></div>
-            <div id="timer-display" class="font-bold text-red-600">Thời gian: 00s</div>
+            <div id="student-info-display" class="font-bold"></div>
+            <div id="timer-display" class="font-bold text-red-600 bg-red-100 px-3 py-1 rounded">Thời gian: 00s</div>
         </div>
 
         <div class="w-full bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
@@ -86,8 +97,8 @@
         </div>
 
         <div class="flex justify-between mt-4">
-            <button id="btn-back" onclick="prevQuestion()" class="px-6 py-2 bg-gray-400 text-white rounded-lg disabled:opacity-50" disabled>QUAY LẠI</button>
-            <button id="btn-next" onclick="nextQuestion()" class="px-6 py-2 btn-green rounded-lg">TIẾP THEO</button>
+            <button id="btn-back" onclick="prevQuestion()" class="px-6 py-2 bg-gray-400 text-white rounded-lg disabled:opacity-50 shadow" disabled>QUAY LẠI</button>
+            <button id="btn-next" onclick="nextQuestion()" class="px-6 py-2 btn-green rounded-lg shadow">TIẾP THEO</button>
         </div>
     </div>
 
@@ -95,7 +106,9 @@
     <div id="screen-results" class="w-full max-w-2xl hidden">
         <div class="card p-8 text-center">
             <h2 class="text-4xl font-bold mb-4" id="result-rank">XẾP LOẠI</h2>
-            <div class="text-6xl font-black text-green-600 mb-6" id="total-score">0.0 / 7.0</div>
+            <div class="text-6xl font-black text-green-600 mb-2" id="total-score">0.0 / 7.0</div>
+            
+            <div id="save-status" class="text-sm font-bold mb-6 text-gray-500 h-6"></div>
             
             <div class="grid grid-cols-3 gap-4 mb-8">
                 <div class="p-3 bg-blue-50 rounded-lg">
@@ -112,8 +125,8 @@
                 </div>
             </div>
 
-            <button onclick="showReview()" class="w-full py-2 bg-blue-500 text-white rounded mb-2">XEM LẠI BÀI LÀM</button>
-            <button onclick="restartGame()" class="w-full py-2 bg-gray-800 text-white rounded">CHƠI LẠI</button>
+            <button onclick="showReview()" class="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded mb-3 shadow transition">XEM LẠI BÀI LÀM</button>
+            <button onclick="restartGame()" class="w-full py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded shadow transition">VỀ TRANG CHỦ</button>
         </div>
 
         <div id="review-container" class="mt-8 space-y-4 hidden pb-10">
@@ -121,39 +134,140 @@
         </div>
     </div>
 
-    <footer class="mt-10 text-center text-xs text-gray-500 italic pb-4">
-        Bản quyền thuộc về Thạc sĩ Nguyễn Văn Cần, Thành phố Huế.
-    </footer>
 
-    <script>
-        // Sound Simulation
-        const playSound = (type) => {
-            const context = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = context.createOscillator();
-            const gain = context.createGain();
-            oscillator.connect(gain);
-            gain.connect(context.destination);
+    <!-- ========================================== -->
+    <!-- PHẦN 2: GIAO DIỆN GIÁO VIÊN                -->
+    <!-- ========================================== -->
+
+    <!-- Screen: Xác thực Giáo viên -->
+    <div id="screen-teacher-auth" class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center hidden mt-10">
+        <div class="text-5xl text-blue-600 mb-4"><i class="fas fa-lock"></i></div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Truy cập Quản trị</h2>
+        <p class="text-gray-500 text-sm mb-6">Nhập mã bảo mật để xem và sửa điểm.</p>
+        
+        <input type="password" id="secret-code" class="w-full border-2 border-gray-300 rounded-lg p-3 mb-4 text-center text-xl tracking-[0.3em] focus:border-blue-500 focus:outline-none transition" placeholder="******" onkeypress="handleEnter(event)">
+        
+        <button onclick="checkTeacherCode()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">
+            XÁC NHẬN
+        </button>
+        <p id="login-error" class="text-red-500 text-sm mt-4 hidden font-medium"><i class="fas fa-exclamation-circle"></i> Mã bảo mật không chính xác!</p>
+        
+        <button onclick="backToStudentLogin()" class="mt-6 text-gray-500 hover:text-gray-800 text-sm underline"><i class="fas fa-arrow-left"></i> Quay lại trang Học sinh</button>
+    </div>
+
+    <!-- Screen: Teacher Dashboard -->
+    <div id="screen-dashboard" class="hidden w-full max-w-7xl mx-auto mt-6">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-blue-800 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold uppercase"><i class="fas fa-chalkboard-teacher mr-2"></i> Bảng điều khiển Giáo viên</h1>
+                    <p class="text-blue-200 mt-1">Hệ thống ghi nhận điểm: Bài Động năng - Thế năng</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportCSV()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold shadow transition">
+                        <i class="fas fa-file-excel mr-2"></i> Xuất Excel (CSV)
+                    </button>
+                    <button onclick="backToStudentLogin()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold shadow transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Thoát
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="p-6 overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="table-header text-sm uppercase">
+                            <th class="p-3 rounded-tl-lg">Thời gian nộp</th>
+                            <th class="p-3">SBD</th>
+                            <th class="p-3">Họ và Tên</th>
+                            <th class="p-3">Lớp</th>
+                            <th class="p-3 text-center">Phần I</th>
+                            <th class="p-3 text-center">Phần II</th>
+                            <th class="p-3 text-center">Phần III</th>
+                            <th class="p-3 text-center text-yellow-300">Tổng</th>
+                            <th class="p-3 text-center">Xếp loại</th>
+                            <th class="p-3 text-center rounded-tr-lg">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm text-gray-700">
+                        <tr><td colspan="10" class="p-6 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Đang kết nối dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal (Giáo viên) -->
+    <div id="edit-modal" class="fixed inset-0 modal hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all">
+            <h2 class="text-xl font-bold mb-4 text-blue-800 border-b pb-2">Chỉnh sửa điểm học sinh</h2>
+            <div class="mb-4">
+                <p class="font-bold text-gray-700" id="edit-name">Tên học sinh</p>
+                <p class="text-xs text-gray-500">Hệ thống sẽ tự động tính lại tổng và xếp loại.</p>
+            </div>
             
-            if (type === 'bell') {
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, context.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
-                oscillator.start();
-                oscillator.stop(context.currentTime + 0.5);
-            } else {
-                oscillator.type = 'triangle';
-                oscillator.frequency.setValueAtTime(440, context.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
-                oscillator.start();
-                oscillator.stop(context.currentTime + 0.3);
-            }
+            <input type="hidden" id="edit-id">
+            
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Phần I (Max 3)</label>
+                    <input type="number" step="0.25" min="0" max="3" id="edit-p1" oninput="recalculate()" class="w-full border rounded p-2 text-center focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Phần II (Max 2)</label>
+                    <input type="number" step="0.0625" min="0" max="2" id="edit-p2" oninput="recalculate()" class="w-full border rounded p-2 text-center focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Phần III (Max 2)</label>
+                    <input type="number" step="0.5" min="0" max="2" id="edit-p3" oninput="recalculate()" class="w-full border rounded p-2 text-center focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <div class="bg-gray-100 p-3 rounded flex justify-between items-center mb-6">
+                <span class="font-bold">Tổng điểm mới:</span>
+                <span id="edit-total" class="text-xl font-black text-blue-600">0.0</span>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 font-medium">Hủy</button>
+                <button onclick="saveEdit()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium shadow">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- PHẦN 3: XỬ LÝ LÔ-GIC VÀ FIREBASE           -->
+    <!-- ========================================== -->
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // CẤU HÌNH BẢO MẬT & FIREBASE
+        const SECRET_CODE = "Sangtao2026@"; // Mật khẩu dành cho Giáo viên (Thay đổi tại đây)
+        const COLLECTION_NAME = "ket_qua_dong_nang"; // Tên thư mục lưu kết quả game này
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4NJArIDAsEuqO5nLXpcIrmvyTF9bAUMg",
+            authDomain: "game-vat-ly-9.firebaseapp.com",
+            projectId: "game-vat-ly-9",
+            storageBucket: "game-vat-ly-9.firebasestorage.app",
+            messagingSenderId: "272270073188",
+            appId: "1:272270073188:web:52c80f7952edde84e52e71",
+            measurementId: "G-XG67JPHMXL"
         };
 
-        // --- Ngân hàng câu hỏi được cập nhật thêm giải thích chi tiết ---
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- NGÂN HÀNG CÂU HỎI ---
         const BANK = {
             part1: [
                 { q: "Đơn vị của động năng là gì?", a: ["Joule (J)", "Newton (N)", "Watt (W)", "Pascal (Pa)"], c: 0, explain: "Joule (J) là đơn vị chuẩn của năng lượng, công và nhiệt lượng trong hệ SI." },
-                { q: "Biểu thức tính động năng của vật có khối lượng $m$ chuyển động với tốc độ $v$ là", a: ["$W_đ = \\frac{1}{2}mv^2$", "$W_đ = mv$", "$W_đ = Ph$", "$W_đ = \\frac{1}{2}mv$"], c: 0, explain: "Động năng được xác định bằng một nửa tích của khối lượng và bình phương tốc độ: $W_đ = \\frac{1}{2}mv^2$." },
+                { q: "Biểu thức tính động năng của vật có khối lượng $m$ chuyển động với tốc độ $v$ là", a: ["$W_đ = \\frac{1}{2}mv^2$", "$W_đ = mv$", "$W_đ = Ph$", "$W_đ = \\frac{1}{2}mv$"], c: 0, explain: "Động năng được xác định bằng một nửa tích của khối lượng và bình phương tốc độ." },
                 { q: "Thế năng trọng trường của một vật phụ thuộc vào", a: ["trọng lượng và độ cao.", "khối lượng và tốc độ.", "tốc độ và thời gian.", "thể tích và hình dạng."], c: 0, explain: "Công thức $W_t = P.h$ cho thấy thế năng trọng trường phụ thuộc vào trọng lượng P và độ cao h của vật." },
                 { q: "Khi vật đang rơi tự do, thế năng trọng trường của vật", a: ["giảm dần.", "tăng dần.", "không đổi.", "bằng 0."], c: 0, explain: "Khi rơi tự do, độ cao h của vật giảm dần so với mặt đất (mốc thế năng), do đó thế năng giảm dần." },
                 { q: "Một vật có khối lượng 1 kg đang chuyển động với tốc độ 2 m/s. Động năng của vật là", a: ["2 J", "4 J", "1 J", "8 J"], c: 0, explain: "Áp dụng công thức $W_đ = \\frac{1}{2}mv^2 = \\frac{1}{2} \\cdot 1 \\cdot 2^2 = 2$ J." },
@@ -196,7 +310,7 @@
                         { text: "Thế năng trọng trường tăng dần khi lên cao.", type: true },
                         { text: "Cơ năng của vật được bảo toàn.", type: true }
                     ],
-                    explain: "Ném lên: v giảm (động năng giảm), h tăng (thế năng tăng). Tại điểm cao nhất, v=0 nên động năng nhỏ nhất. Bỏ qua sức cản thì cơ năng bảo toàn."
+                    explain: "Ném lên: v giảm (động năng giảm), h tăng (thế năng tăng). Tại điểm cao nhất, v=0 nên động năng nhỏ nhất."
                 },
                 {
                     lead: "Hai ô tô A và B có cùng khối lượng. Ô tô A chạy với tốc độ 40 km/h, ô tô B chạy với tốc độ 60 km/h.",
@@ -206,7 +320,7 @@
                         { text: "Nếu cả hai dừng lại, động năng của chúng bằng 0.", type: true },
                         { text: "Động năng tỉ lệ thuận với tốc độ v.", type: false }
                     ],
-                    explain: "Xe B có v lớn hơn nên động năng lớn hơn. Cùng đường nằm ngang tức là cùng mốc h nên thế năng bằng nhau. Động năng tỉ lệ thuận với BÌNH PHƯƠNG tốc độ, không phải tốc độ."
+                    explain: "Động năng tỉ lệ thuận với BÌNH PHƯƠNG tốc độ, không phải tốc độ."
                 },
                 {
                     lead: "Một hòn đá được thả rơi từ đỉnh một tòa nhà cao tầng.",
@@ -226,7 +340,7 @@
                         { text: "$m$ là khối lượng của vật tính bằng kg.", type: true },
                         { text: "$P$ là áp suất của vật tác dụng lên mặt sàn.", type: false }
                     ],
-                    explain: "Năng lượng có đơn vị chung là Joule. h là độ cao so với mốc thế năng, P là trọng lượng của vật."
+                    explain: "h là độ cao so với mốc thế năng, P là trọng lượng của vật."
                 },
                 {
                     lead: "Khi đập một quả bóng xuống sàn nhà và bóng nảy lên.",
@@ -236,7 +350,7 @@
                         { text: "Độ cao cực đại sau mỗi lần nảy thường giảm dần do ma sát.", type: true },
                         { text: "Cơ năng luôn bảo toàn tuyệt đối trong thực tế.", type: false }
                     ],
-                    explain: "Chạm sàn: bóng biến dạng nên sinh thế năng đàn hồi. Nảy lên: v giảm nên động năng giảm. Thực tế luôn có ma sát nên cơ năng không bảo toàn."
+                    explain: "Chạm sàn: bóng biến dạng nên sinh thế năng đàn hồi. Nảy lên: v giảm nên động năng giảm. Thực tế luôn có ma sát."
                 },
                 {
                     lead: "Một con lắc lò xo treo thẳng đứng đang dao động.",
@@ -256,7 +370,7 @@
                         { text: "Nếu hòn đá được nhấc lên cao 1m, nó sẽ có thế năng.", type: true },
                         { text: "Chim bay càng nhanh thì thế năng càng lớn.", type: false }
                     ],
-                    explain: "Đá nằm trên đất có v=0, h=0 nên không có cơ năng. Chim bay càng nhanh thì ĐỘNG NĂNG càng lớn, tốc độ không ảnh hưởng đến thế năng."
+                    explain: "Chim bay càng nhanh thì ĐỘNG NĂNG càng lớn, tốc độ không ảnh hưởng đến thế năng."
                 }
             ],
             part3: [
@@ -272,14 +386,14 @@
                 {
                     q: "Sắp xếp các nhận định đúng về động năng:\n1. Động năng phụ thuộc vào khối lượng.\n2. Động năng phụ thuộc vào độ cao.\n3. Động năng tỉ lệ với bình phương tốc độ.\n4. Đơn vị của động năng là Watt.\n5. $W_đ = \\frac{1}{2}mv^2$.\n6. Động năng luôn bằng 0.\n7. Động năng là năng lượng do chuyển động.\n8. Tốc độ v tính bằng km/h trong công thức chuẩn.\nChọn các nhận định ĐÚNG rồi ghi đáp án bằng dãy số tăng dần.",
                     ans: "1357",
-                    explain: "Ý 2 sai vì phụ thuộc tốc độ; ý 4 sai vì đơn vị là J; ý 6 sai; ý 8 sai vì v tính bằng m/s theo chuẩn hệ SI."
+                    explain: "Ý 2 sai vì phụ thuộc tốc độ; ý 4 sai vì đơn vị là J; ý 8 sai vì v tính bằng m/s theo chuẩn hệ SI."
                 },
                 { q: "Một quả bóng 0,5 kg có động năng 4 J. Tính tốc độ (m/s) của quả bóng.", ans: "4", explain: "$W_đ = \\frac{1}{2}mv^2 \\Rightarrow 4 = \\frac{1}{2} \\cdot 0,5 \\cdot v^2 \\Rightarrow v^2 = 16 \\Rightarrow v = 4$ m/s." },
                 { q: "Vật có trọng lượng 50 N, thế năng là 250 J. Tính độ cao (m) của vật.", ans: "5", explain: "$W_t = Ph \\Rightarrow 250 = 50 \\cdot h \\Rightarrow h = 5$ m." }
             ]
         };
 
-        // --- Game State ---
+        // --- GAME LOGIC STATE ---
         let currentQuestions = [];
         let userAnswers = [];
         let currentIndex = 0;
@@ -291,28 +405,50 @@
             return array.sort(() => Math.random() - 0.5);
         }
 
-        function startGame() {
+        // Đẩy các hàm ra Window để HTML onclick nhận diện được
+        window.playSound = function(type) {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            
+            if (type === 'bell') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.5);
+            } else {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(440, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.3);
+            }
+        };
+
+        window.startGame = function() {
+            const n = document.getElementById('input-name').value.trim();
+            if(!n) { alert("Vui lòng nhập Họ và Tên!"); return; }
+
             student = {
-                name: document.getElementById('input-name').value || "Thí sinh",
+                name: n,
                 sbd: document.getElementById('input-sbd').value || "000",
                 class: document.getElementById('input-class').value || "9A",
                 school: document.getElementById('input-school').value || "THCS"
             };
 
-            // Trích xuất ngẫu nhiên và XÁO TRỘN ĐÁP ÁN Phần I
+            // Trích xuất ngẫu nhiên và xáo trộn phương án
             const p1 = shuffle([...BANK.part1]).slice(0, 12).map(q => {
                 let optionsWithFlag = q.a.map((optText, index) => ({ text: optText, isCorrect: index === q.c }));
-                optionsWithFlag = shuffle(optionsWithFlag); // Xáo trộn A, B, C, D
+                optionsWithFlag = shuffle(optionsWithFlag);
                 const newCorrectIndex = optionsWithFlag.findIndex(o => o.isCorrect);
                 return { ...q, a: optionsWithFlag.map(o => o.text), c: newCorrectIndex, type: 'mc' };
             });
-
-            // Trích xuất ngẫu nhiên và XÁO TRỘN ĐÁP ÁN Phần II
             const p2 = shuffle([...BANK.part2]).slice(0, 4).map(q => {
                 return { ...q, options: shuffle([...q.options]), type: 'tf' };
             });
-
-            // Trích xuất ngẫu nhiên Phần III
             const p3 = shuffle([...BANK.part3]).slice(0, 4).map(q => ({...q, type: 'sa'}));
             
             currentQuestions = [...p1, ...p2, ...p3];
@@ -321,12 +457,13 @@
 
             document.getElementById('screen-login').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
-            document.getElementById('student-info-display').innerText = `${student.name} - SBD: ${student.sbd} - Lớp: ${student.class}`;
+            document.getElementById('screen-game').classList.add('flex');
+            document.getElementById('student-info-display').innerText = `${student.name} | SBD: ${student.sbd} | Lớp: ${student.class}`;
             
-            showQuestion();
-        }
+            window.showQuestion();
+        };
 
-        function showQuestion() {
+        window.showQuestion = function() {
             const q = currentQuestions[currentIndex];
             const container = document.getElementById('question-container');
             let html = `<div class="mb-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold uppercase">Câu ${currentIndex + 1} / 20</span></div>`;
@@ -338,7 +475,7 @@
                     html += `<div onclick="selectMC(${idx})" class="option-card p-3 rounded-lg border ${selected}">${String.fromCharCode(65+idx)}. ${opt}</div>`;
                 });
                 html += `</div>`;
-                startTimer(90);
+                window.startTimer(90);
             } else if (q.type === 'tf') {
                 html += `<div class="text-lg font-medium mb-4">${q.lead}</div><div class="space-y-4">`;
                 const saved = userAnswers[currentIndex] || [null, null, null, null];
@@ -354,25 +491,24 @@
                         </div>`;
                 });
                 html += `</div>`;
-                startTimer(120);
+                window.startTimer(120);
             } else if (q.type === 'sa') {
                 html += `<div class="text-lg font-medium mb-4">${q.q}</div>`;
                 const val = userAnswers[currentIndex] || "";
-                html += `<input type="text" id="sa-input" maxlength="4" oninput="saveSA(this.value)" value="${val}" class="w-full p-3 border-2 border-green-200 rounded-lg text-center text-2xl font-bold focus:border-green-500 outline-none" placeholder="...">`;
-                startTimer(120);
+                html += `<input type="text" maxlength="4" oninput="saveSA(this.value)" value="${val}" class="w-full p-3 border-2 border-green-200 rounded-lg text-center text-2xl font-bold focus:border-green-500 outline-none" placeholder="...">`;
+                window.startTimer(120);
             }
 
             container.innerHTML = html;
             document.getElementById('btn-back').disabled = currentIndex === 0;
             document.getElementById('btn-next').innerText = currentIndex === 19 ? "NỘP BÀI" : "TIẾP THEO";
             
-            // Re-render toán học bằng MathJax 3
             if (window.MathJax && window.MathJax.typesetPromise) {
                 MathJax.typesetPromise([container]).catch((err) => console.log(err.message));
             }
-        }
+        };
 
-        function startTimer(seconds) {
+        window.startTimer = function(seconds) {
             if (timer) clearInterval(timer);
             timeLeft = seconds;
             const bar = document.getElementById('timer-bar');
@@ -380,57 +516,48 @@
             
             const tick = () => {
                 display.innerText = `Thời gian: ${timeLeft}s`;
-                const pct = (timeLeft / seconds) * 100;
-                bar.style.width = pct + "%";
+                bar.style.width = ((timeLeft / seconds) * 100) + "%";
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    nextQuestion();
+                    window.nextQuestion();
                 }
                 timeLeft--;
             };
             tick();
             timer = setInterval(tick, 1000);
-        }
+        };
 
-        function selectMC(idx) {
+        window.selectMC = function(idx) {
             userAnswers[currentIndex] = idx;
-            playSound('ping');
-            showQuestion();
-        }
+            window.playSound('ping');
+            window.showQuestion();
+        };
 
-        function selectTF(idx, val) {
+        window.selectTF = function(idx, val) {
             if (!userAnswers[currentIndex]) userAnswers[currentIndex] = [null, null, null, null];
             userAnswers[currentIndex][idx] = val;
-            playSound('ping');
-            showQuestion();
-        }
+            window.playSound('ping');
+            window.showQuestion();
+        };
 
-        function saveSA(val) {
+        window.saveSA = function(val) {
             userAnswers[currentIndex] = val.trim();
-        }
+        };
 
-        function prevQuestion() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                showQuestion();
-            }
-        }
+        window.prevQuestion = function() {
+            if (currentIndex > 0) { currentIndex--; window.showQuestion(); }
+        };
 
-        function nextQuestion() {
-            if (currentIndex < 19) {
-                currentIndex++;
-                showQuestion();
-            } else {
-                finishGame();
-            }
-        }
+        window.nextQuestion = function() {
+            if (currentIndex < 19) { currentIndex++; window.showQuestion(); } 
+            else { window.finishGame(); }
+        };
 
-        function finishGame() {
+        window.finishGame = async function() {
             clearInterval(timer);
-            playSound('bell');
+            window.playSound('bell');
             
             let s1 = 0, s2 = 0, s3 = 0;
-            
             currentQuestions.forEach((q, i) => {
                 const ans = userAnswers[i];
                 if (q.type === 'mc') {
@@ -438,9 +565,7 @@
                 } else if (q.type === 'tf') {
                     if (ans) {
                         let count = 0;
-                        q.options.forEach((opt, idx) => {
-                            if (ans[idx] === opt.type) count++;
-                        });
+                        q.options.forEach((opt, idx) => { if (ans[idx] === opt.type) count++; });
                         if (count === 1) s2 += 0.0625;
                         else if (count === 2) s2 += 0.125;
                         else if (count === 3) s2 += 0.25;
@@ -453,6 +578,7 @@
 
             const total = s1 + s2 + s3;
             document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('flex');
             document.getElementById('screen-results').classList.remove('hidden');
             
             document.getElementById('total-score').innerText = total.toFixed(1) + " / 7.0";
@@ -465,11 +591,36 @@
             else if (total >= 5) rank = "GIỎI";
             else if (total >= 4) rank = "KHÁ";
             else if (total >= 3) rank = "ĐẠT";
-            
             document.getElementById('result-rank').innerText = rank;
-        }
 
-        function showReview() {
+            // Xử lý lưu Firebase
+            const statusEl = document.getElementById('save-status');
+            statusEl.innerText = "Đang lưu kết quả lên hệ thống...";
+            statusEl.className = "text-sm font-bold mb-6 text-blue-500 h-6";
+
+            try {
+                await addDoc(collection(db, COLLECTION_NAME), {
+                    hoTen: student.name,
+                    sbd: student.sbd,
+                    lop: student.class,
+                    truong: student.school,
+                    diemTong: parseFloat(total.toFixed(1)),
+                    diemPhan1: parseFloat(s1.toFixed(2)),
+                    diemPhan2: parseFloat(s2.toFixed(2)),
+                    diemPhan3: parseFloat(s3.toFixed(2)),
+                    xepLoai: rank,
+                    thoiGianNop: serverTimestamp()
+                });
+                statusEl.innerText = "Đã nộp bài lên hệ thống thành công!";
+                statusEl.className = "text-sm font-bold mb-6 text-green-600 h-6";
+            } catch (error) {
+                console.error("Lỗi lưu điểm: ", error);
+                statusEl.innerText = "Lỗi nộp bài. Vui lòng báo Giáo viên.";
+                statusEl.className = "text-sm font-bold mb-6 text-red-500 h-6";
+            }
+        };
+
+        window.showReview = function() {
             const container = document.getElementById('review-container');
             container.innerHTML = '<h3 class="text-xl font-bold mb-4 text-left">Chi tiết bài làm</h3>';
             container.classList.remove('hidden');
@@ -481,79 +632,230 @@
                 if (q.type === 'mc') {
                     const isCorrect = ans === q.c;
                     itemHtml += isCorrect ? 'border-green-500' : 'border-red-500';
-                    itemHtml += `">
-                        <div class="font-bold mb-3">Câu ${i+1}: ${q.q}</div>
-                        <div class="space-y-2 text-sm">`;
-                    
+                    itemHtml += `"><div class="font-bold mb-3">Câu ${i+1}: ${q.q}</div><div class="space-y-2 text-sm">`;
                     q.a.forEach((optText, optIdx) => {
                         let bgStyle = "bg-gray-50 border-gray-200 text-gray-700";
-                        if (optIdx === q.c) bgStyle = "bg-green-100 border-green-400 font-bold text-green-900"; // Đáp án đúng
-                        else if (optIdx === ans && ans !== q.c) bgStyle = "bg-red-100 border-red-400 font-bold text-red-900"; // Sai
-
+                        if (optIdx === q.c) bgStyle = "bg-green-100 border-green-400 font-bold text-green-900";
+                        else if (optIdx === ans && ans !== q.c) bgStyle = "bg-red-100 border-red-400 font-bold text-red-900";
                         itemHtml += `<div class="p-2 border rounded ${bgStyle}">${String.fromCharCode(65+optIdx)}. ${optText}</div>`;
                     });
-                    
-                    itemHtml += `</div>
-                        <div class="mt-4 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200">
-                            <b>Giải thích:</b> ${q.explain || "Đáp án chính xác là " + String.fromCharCode(65+q.c)}
-                        </div>`;
+                    itemHtml += `</div><div class="mt-4 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200"><b>Giải thích:</b> ${q.explain}</div>`;
 
                 } else if (q.type === 'tf') {
                     itemHtml += 'border-blue-500';
-                    itemHtml += `">
-                        <div class="font-bold mb-3">Câu ${i+1}: ${q.lead}</div>
-                        <div class="space-y-2 text-sm">`;
-                    
+                    itemHtml += `"><div class="font-bold mb-3">Câu ${i+1}: ${q.lead}</div><div class="space-y-2 text-sm">`;
                     q.options.forEach((opt, idx) => {
                         const userVal = ans ? ans[idx] : null;
                         const isCorrect = userVal === opt.type;
                         const char = String.fromCharCode(97+idx);
-                        
                         let bgStyle = isCorrect ? "bg-green-50 border-green-200" : (userVal !== null ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200");
-                        
-                        itemHtml += `<div class="p-2 border rounded ${bgStyle}">
-                            <div class="mb-1">${char}) ${opt.text}</div>
-                            <div class="text-xs">
-                                Học sinh chọn: <b class="${userVal===null?'text-gray-500':(userVal?'text-blue-600':'text-blue-600')}">${userVal === null ? 'Bỏ trống' : (userVal ? 'ĐÚNG' : 'SAI')}</b> 
-                                | Đáp án: <b class="text-green-700">${opt.type ? 'ĐÚNG' : 'SAI'}</b>
-                            </div>
-                        </div>`;
+                        itemHtml += `<div class="p-2 border rounded ${bgStyle}"><div class="mb-1">${char}) ${opt.text}</div><div class="text-xs">Học sinh chọn: <b class="text-blue-600">${userVal === null ? 'Bỏ trống' : (userVal ? 'ĐÚNG' : 'SAI')}</b> | Đáp án: <b class="text-green-700">${opt.type ? 'ĐÚNG' : 'SAI'}</b></div></div>`;
                     });
-
-                    itemHtml += `</div>
-                        <div class="mt-4 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200">
-                            <b>Giải thích:</b> ${q.explain || "Học sinh đối chiếu các nhận định đúng/sai với lý thuyết."}
-                        </div>`;
+                    itemHtml += `</div><div class="mt-4 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200"><b>Giải thích:</b> ${q.explain}</div>`;
 
                 } else if (q.type === 'sa') {
                     const isCorrect = ans === q.ans;
                     itemHtml += isCorrect ? 'border-green-500' : 'border-red-500';
-                    itemHtml += `">
-                        <div class="font-bold mb-3">Câu ${i+1}: ${q.q}</div>
-                        <div class="flex gap-4 mb-2">
-                            <div class="text-sm p-2 bg-gray-100 rounded border flex-1">Học sinh nhập: <b class="${isCorrect?'text-green-600':'text-red-600'}">${ans || 'Bỏ trống'}</b></div>
-                            <div class="text-sm p-2 bg-green-100 rounded border border-green-300 flex-1">Đáp án đúng: <b class="text-green-700">${q.ans}</b></div>
-                        </div>
-                        <div class="mt-2 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200">
-                            <b>Giải thích:</b> ${q.explain || "Đáp án là kết quả chính xác dựa trên công thức hoặc suy luận."}
-                        </div>`;
+                    itemHtml += `"><div class="font-bold mb-3">Câu ${i+1}: ${q.q}</div><div class="flex gap-4 mb-2"><div class="text-sm p-2 bg-gray-100 rounded border flex-1">Học sinh nhập: <b class="${isCorrect?'text-green-600':'text-red-600'}">${ans || 'Bỏ trống'}</b></div><div class="text-sm p-2 bg-green-100 rounded border border-green-300 flex-1">Đáp án đúng: <b class="text-green-700">${q.ans}</b></div></div><div class="mt-2 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200"><b>Giải thích:</b> ${q.explain}</div>`;
                 }
 
                 itemHtml += `</div>`;
                 container.innerHTML += itemHtml;
             });
             
-            // Re-render toán học
             if (window.MathJax && window.MathJax.typesetPromise) {
                 MathJax.typesetPromise([container]).catch((err) => console.log(err.message));
             }
-        }
+        };
 
-        function restartGame() {
+        window.restartGame = function() {
             document.getElementById('screen-results').classList.add('hidden');
             document.getElementById('screen-login').classList.remove('hidden');
             document.getElementById('review-container').classList.add('hidden');
+            document.getElementById('save-status').innerText = "";
+        };
+
+
+        // ==========================================
+        // KHU VỰC DÀNH RIÊNG CHO GIÁO VIÊN
+        // ==========================================
+        let globalResults = [];
+
+        window.showTeacherAuth = function() {
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-teacher-auth').classList.remove('hidden');
+        };
+
+        window.backToStudentLogin = function() {
+            document.getElementById('screen-teacher-auth').classList.add('hidden');
+            document.getElementById('screen-dashboard').classList.add('hidden');
+            document.getElementById('screen-login').classList.remove('hidden');
+            document.getElementById('secret-code').value = ""; // Xoá pass
+            
+            // THÊM DÒNG NÀY: Phục hồi lại trạng thái căn giữa màn hình cho form đăng nhập học sinh
+            document.getElementById('main-body').classList.add('items-center', 'justify-center');
+        };
+
+        window.handleEnter = function(e) {
+            if(e.key === 'Enter') window.checkTeacherCode();
+        };
+
+        window.checkTeacherCode = function() {
+            const inputCode = document.getElementById('secret-code').value;
+            if (inputCode === SECRET_CODE) {
+                document.getElementById('screen-teacher-auth').classList.add('hidden');
+                document.getElementById('screen-dashboard').classList.remove('hidden');
+                document.getElementById('login-error').classList.add('hidden');
+                
+                // Thay đổi layout body để Dashboard mở rộng
+                document.getElementById('main-body').classList.remove('items-center', 'justify-center');
+                
+                initTeacherSystem();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        };
+
+        function initTeacherSystem() {
+            // Lắng nghe dữ liệu realtime
+            onSnapshot(collection(db, COLLECTION_NAME), (snapshot) => {
+                let results = [];
+                snapshot.forEach((docSnap) => {
+                    results.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Sắp xếp dữ liệu: Mới nhất lên đầu
+                results.sort((a, b) => {
+                    const timeA = a.thoiGianNop ? a.thoiGianNop.toMillis() : 0;
+                    const timeB = b.thoiGianNop ? b.thoiGianNop.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                globalResults = results;
+                renderTeacherTable(results);
+            }, (error) => {
+                console.error("Lỗi lấy dữ liệu:", error);
+                document.getElementById("table-body").innerHTML = `<tr><td colspan="10" class="p-6 text-center text-red-500 font-bold">Lỗi kết nối Firebase hoặc chưa cấp quyền (Rules)!</td></tr>`;
+            });
         }
+
+        function renderTeacherTable(data) {
+            const tbody = document.getElementById("table-body");
+            tbody.innerHTML = "";
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-gray-500">Chưa có dữ liệu nộp bài.</td></tr>`;
+                return;
+            }
+
+            data.forEach((item) => {
+                const timeStr = item.thoiGianNop ? new Date(item.thoiGianNop.toMillis()).toLocaleString('vi-VN') : 'Không rõ';
+                
+                let rankColor = "text-gray-600";
+                if (item.xepLoai === "XUẤT SẮC") rankColor = "text-purple-600 font-bold";
+                else if (item.xepLoai === "GIỎI") rankColor = "text-blue-600 font-bold";
+                else if (item.xepLoai === "KHÁ") rankColor = "text-green-600 font-bold";
+                else if (item.xepLoai === "ĐẠT") rankColor = "text-yellow-600 font-bold";
+                else rankColor = "text-red-600 font-bold";
+
+                const tr = document.createElement("tr");
+                tr.className = "border-b table-row";
+                tr.innerHTML = `
+                    <td class="p-3 text-xs text-gray-500">${timeStr}</td>
+                    <td class="p-3 font-bold">${item.sbd || ''}</td>
+                    <td class="p-3 font-medium text-blue-800">${item.hoTen || ''}</td>
+                    <td class="p-3">${item.lop || ''}</td>
+                    <td class="p-3 text-center bg-gray-50">${item.diemPhan1}</td>
+                    <td class="p-3 text-center">${item.diemPhan2}</td>
+                    <td class="p-3 text-center bg-gray-50">${item.diemPhan3}</td>
+                    <td class="p-3 text-center font-black text-lg text-blue-600">${item.diemTong}</td>
+                    <td class="p-3 text-center ${rankColor}">${item.xepLoai}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="window.openEditModal('${item.id}', '${item.hoTen}', ${item.diemPhan1}, ${item.diemPhan2}, ${item.diemPhan3})" class="text-blue-500 hover:text-blue-700 mx-1"><i class="fas fa-edit"></i></button>
+                        <button onclick="window.deleteRecord('${item.id}', '${item.hoTen}')" class="text-red-500 hover:text-red-700 mx-1"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.openEditModal = function(id, name, p1, p2, p3) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-name').innerText = name;
+            document.getElementById('edit-p1').value = p1;
+            document.getElementById('edit-p2').value = p2;
+            document.getElementById('edit-p3').value = p3;
+            window.recalculate();
+            document.getElementById('edit-modal').classList.remove('hidden');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        };
+
+        window.recalculate = function() {
+            const p1 = parseFloat(document.getElementById('edit-p1').value) || 0;
+            const p2 = parseFloat(document.getElementById('edit-p2').value) || 0;
+            const p3 = parseFloat(document.getElementById('edit-p3').value) || 0;
+            document.getElementById('edit-total').innerText = (p1 + p2 + p3).toFixed(1);
+        };
+
+        window.saveEdit = async function() {
+            const id = document.getElementById('edit-id').value;
+            const p1 = parseFloat(document.getElementById('edit-p1').value) || 0;
+            const p2 = parseFloat(document.getElementById('edit-p2').value) || 0;
+            const p3 = parseFloat(document.getElementById('edit-p3').value) || 0;
+            const total = parseFloat((p1 + p2 + p3).toFixed(1));
+
+            let rank = "CHƯA ĐẠT";
+            if (total >= 6) rank = "XUẤT SẮC";
+            else if (total >= 5) rank = "GIỎI";
+            else if (total >= 4) rank = "KHÁ";
+            else if (total >= 3) rank = "ĐẠT";
+
+            try {
+                await updateDoc(doc(db, COLLECTION_NAME, id), {
+                    diemPhan1: p1,
+                    diemPhan2: p2,
+                    diemPhan3: p3,
+                    diemTong: total,
+                    xepLoai: rank
+                });
+                alert("Cập nhật thành công!");
+                window.closeModal();
+            } catch (error) {
+                console.error("Lỗi cập nhật: ", error);
+                alert("Lỗi! Không thể cập nhật.");
+            }
+        };
+
+        window.deleteRecord = async function(id, name) {
+            if (confirm(`Bạn chắc chắn muốn xoá bài thi của [${name}]?`)) {
+                try {
+                    await deleteDoc(doc(db, COLLECTION_NAME, id));
+                } catch (error) {
+                    console.error("Lỗi xoá: ", error);
+                    alert("Lỗi! Không thể xoá bài thi.");
+                }
+            }
+        };
+
+        window.exportCSV = function() {
+            if (globalResults.length === 0) { alert("Chưa có dữ liệu!"); return; }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Thêm BOM cho tiếng việt
+            csvContent += "Thời gian nộp,SBD,Họ tên,Lớp,Trường,Phần I,Phần II,Phần III,Tổng,Xếp loại\n";
+            globalResults.forEach(r => {
+                let timeStr = r.thoiGianNop ? new Date(r.thoiGianNop.toMillis()).toLocaleString('vi-VN') : '';
+                csvContent += `"${timeStr}","${r.sbd}","${r.hoTen}","${r.lop}","${r.truong}",${r.diemPhan1},${r.diemPhan2},${r.diemPhan3},${r.diemTong},"${r.xepLoai}"\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Bang_Diem_DongNang_TheNang.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
     </script>
 </body>
 </html>
