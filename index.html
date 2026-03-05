@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tương tác: Động năng - Thế năng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Cấu hình MathJax 3 để nhận diện biểu thức toán học -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: {
+                typeset: false
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; }
+        .gold-text { color: #d4af37; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .btn-green { background-color: #2d6a4f; color: white; transition: all 0.3s; }
+        .btn-green:hover { background-color: #1b4332; transform: translateY(-2px); }
+        .timer-bar { transition: width 1s linear; }
+        .option-card { cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .option-card:hover { border-color: #2d6a4f; background-color: #f0fff4; }
+        .option-selected { border-color: #2d6a4f; background-color: #e6fffa; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- Screen: Login -->
+    <div id="screen-login" class="w-full max-w-md mt-10">
+        <div class="text-center mb-6">
+            <div class="inline-block relative">
+                <span class="text-6xl">📖</span>
+                <span class="absolute -top-2 -right-2 text-3xl">✏️</span>
+            </div>
+            <h1 class="text-3xl font-bold gold-text mt-4 italic uppercase">Động năng - Thế năng</h1>
+            <p class="text-gray-600">Trò chơi tương tác KHTN 9</p>
+        </div>
+        <div class="card p-8">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Họ và tên</label>
+                    <input type="text" id="input-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Số báo danh</label>
+                    <input type="text" id="input-sbd" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Lớp</label>
+                        <input type="text" id="input-class" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Trường</label>
+                        <input type="text" id="input-school" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 border p-2">
+                    </div>
+                </div>
+                <button onclick="startGame()" class="w-full btn-green py-3 rounded-lg font-bold text-lg mt-4">BẮT ĐẦU CHƠI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Game -->
+    <div id="screen-game" class="w-full max-w-2xl hidden flex flex-col">
+        <div class="flex justify-between items-center mb-4 text-sm text-gray-600 border-b pb-2">
+            <div id="student-info-display"></div>
+            <div id="timer-display" class="font-bold text-red-600">Thời gian: 00s</div>
+        </div>
+
+        <div class="w-full bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
+            <div id="timer-bar" class="h-full bg-green-500 timer-bar w-full"></div>
+        </div>
+
+        <div id="question-container" class="card p-6 min-h-[400px]">
+            <!-- Dynamic Content -->
+        </div>
+
+        <div class="flex justify-between mt-4">
+            <button id="btn-back" onclick="prevQuestion()" class="px-6 py-2 bg-gray-400 text-white rounded-lg disabled:opacity-50" disabled>QUAY LẠI</button>
+            <button id="btn-next" onclick="nextQuestion()" class="px-6 py-2 btn-green rounded-lg">TIẾP THEO</button>
+        </div>
+    </div>
+
+    <!-- Screen: Results -->
+    <div id="screen-results" class="w-full max-w-2xl hidden">
+        <div class="card p-8 text-center">
+            <h2 class="text-4xl font-bold mb-4" id="result-rank">XẾP LOẠI</h2>
+            <div class="text-6xl font-black text-green-600 mb-6" id="total-score">0.0 / 7.0</div>
+            
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <div class="text-xs text-blue-600 font-bold">PHẦN I</div>
+                    <div id="score-p1" class="text-xl font-bold">0.0</div>
+                </div>
+                <div class="p-3 bg-green-50 rounded-lg">
+                    <div class="text-xs text-green-600 font-bold">PHẦN II</div>
+                    <div id="score-p2" class="text-xl font-bold">0.0</div>
+                </div>
+                <div class="p-3 bg-purple-50 rounded-lg">
+                    <div class="text-xs text-purple-600 font-bold">PHẦN III</div>
+                    <div id="score-p3" class="text-xl font-bold">0.0</div>
+                </div>
+            </div>
+
+            <button onclick="showReview()" class="w-full py-2 bg-blue-500 text-white rounded mb-2">XEM LẠI BÀI LÀM</button>
+            <button onclick="restartGame()" class="w-full py-2 bg-gray-800 text-white rounded">CHƠI LẠI</button>
+        </div>
+
+        <div id="review-container" class="mt-8 space-y-4 hidden pb-10">
+            <!-- History Content -->
+        </div>
+    </div>
+
+    <footer class="mt-10 text-center text-xs text-gray-500 italic pb-4">
+        Bản quyền thuộc về Thạc sĩ Nguyễn Văn Cần, Thành phố Huế.
+    </footer>
+
+    <script>
+        // Sound Simulation
+        const playSound = (type) => {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            
+            if (type === 'bell') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.5);
+            } else {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(440, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.3);
+            }
+        };
+
+        // --- Ngân hàng câu hỏi được cập nhật thêm giải thích chi tiết ---
+        const BANK = {
+            part1: [
+                { q: "Đơn vị của động năng là gì?", a: ["Joule (J)", "Newton (N)", "Watt (W)", "Pascal (Pa)"], c: 0, explain: "Joule (J) là đơn vị chuẩn của năng lượng, công và nhiệt lượng trong hệ SI." },
+                { q: "Biểu thức tính động năng của vật có khối lượng $m$ chuyển động với tốc độ $v$ là", a: ["$W_đ = \\frac{1}{2}mv^2$", "$W_đ = mv$", "$W_đ = Ph$", "$W_đ = \\frac{1}{2}mv$"], c: 0, explain: "Động năng được xác định bằng một nửa tích của khối lượng và bình phương tốc độ: $W_đ = \\frac{1}{2}mv^2$." },
+                { q: "Thế năng trọng trường của một vật phụ thuộc vào", a: ["trọng lượng và độ cao.", "khối lượng và tốc độ.", "tốc độ và thời gian.", "thể tích và hình dạng."], c: 0, explain: "Công thức $W_t = P.h$ cho thấy thế năng trọng trường phụ thuộc vào trọng lượng P và độ cao h của vật." },
+                { q: "Khi vật đang rơi tự do, thế năng trọng trường của vật", a: ["giảm dần.", "tăng dần.", "không đổi.", "bằng 0."], c: 0, explain: "Khi rơi tự do, độ cao h của vật giảm dần so với mặt đất (mốc thế năng), do đó thế năng giảm dần." },
+                { q: "Một vật có khối lượng 1 kg đang chuyển động với tốc độ 2 m/s. Động năng của vật là", a: ["2 J", "4 J", "1 J", "8 J"], c: 0, explain: "Áp dụng công thức $W_đ = \\frac{1}{2}mv^2 = \\frac{1}{2} \\cdot 1 \\cdot 2^2 = 2$ J." },
+                { q: "Lấy 1 kg ứng với 10 N. Một vật nặng 2 kg ở độ cao 5 m so với mặt đất có thế năng trọng trường là", a: ["100 J", "10 J", "50 J", "20 J"], c: 0, explain: "Trọng lượng $P = 10m = 10 \\cdot 2 = 20$ N. Thế năng $W_t = Ph = 20 \\cdot 5 = 100$ J." },
+                { q: "Nếu tốc độ của vật tăng gấp đôi thì động năng của vật tăng", a: ["4 lần.", "2 lần.", "8 lần.", "không đổi."], c: 0, explain: "Động năng tỉ lệ thuận với bình phương tốc độ ($v^2$). Khi v tăng 2 lần thì $v^2$ tăng 4 lần." },
+                { q: "Trong các trường hợp sau, vật nào KHÔNG có động năng?", a: ["Một hòn đá nằm yên trên mặt đất.", "Một chiếc xe đang chạy.", "Một chú chim đang bay.", "Một quả táo đang rơi."], c: 0, explain: "Hòn đá nằm yên tức là tốc độ v = 0, suy ra động năng bằng 0." },
+                { q: "Khi con lắc đơn đi từ vị trí biên về vị trí cân bằng thì", a: ["thế năng chuyển hóa thành động năng.", "động năng chuyển hóa thành thế năng.", "cơ năng tăng dần.", "thế năng không đổi."], c: 0, explain: "Từ biên về vị trí cân bằng, độ cao của con lắc giảm (thế năng giảm) và tốc độ tăng dần (động năng tăng)." },
+                { q: "Một máy bay đang bay trên cao có", a: ["cả động năng và thế năng.", "chỉ có động năng.", "chỉ có thế năng.", "không có năng lượng."], c: 0, explain: "Máy bay đang bay có độ cao h > 0 (có thế năng) và tốc độ v > 0 (có động năng)." },
+                { q: "Dạng năng lượng của dòng nước đang chảy trong ống dẫn là", a: ["động năng.", "thế năng.", "nhiệt năng.", "hóa năng."], c: 0, explain: "Dòng nước đang chảy tức là có tốc độ chuyển động (v > 0) nên nó mang động năng." },
+                { q: "Phát biểu nào sau đây là ĐÚNG về thế năng trọng trường?", a: ["Phụ thuộc vào mốc chọn độ cao.", "Chỉ phụ thuộc vào khối lượng.", "Luôn có giá trị dương.", "Không đổi khi vật di chuyển ngang."], c: 0, explain: "Độ cao h trong công thức $W_t = Ph$ được xác định dựa vào mốc tính độ cao do ta chọn." },
+                { q: "Một quả bóng được ném lên cao. Tại điểm cao nhất, năng lượng của quả bóng", a: ["thế năng cực đại, động năng bằng 0.", "động năng cực đại.", "cơ năng bằng 0.", "thế năng bằng 0."], c: 0, explain: "Tại điểm cao nhất, tốc độ vật bằng 0 (động năng bằng 0), độ cao đạt cực đại (thế năng cực đại)." },
+                { q: "Vật m1 có tốc độ v, vật m2 = 2.m1 có cùng tốc độ v. Động năng vật 2 so với vật 1 là", a: ["lớn gấp 2 lần.", "bằng nhau.", "nhỏ hơn 2 lần.", "lớn gấp 4 lần."], c: 0, explain: "Hai vật cùng tốc độ v. Động năng tỉ lệ thuận với m. Vì m2 = 2.m1 nên động năng vật 2 gấp 2 lần vật 1." },
+                { q: "Đơn vị tính độ cao trong công thức thế năng trọng trường là", a: ["mét (m).", "centimét (cm).", "kilômét (km).", "milimét (mm)."], c: 0, explain: "Trong hệ đo lường SI, độ dài, độ cao được tính bằng đơn vị chuẩn là mét (m)." },
+                { q: "Một lò xo bị nén có năng lượng gọi là", a: ["thế năng đàn hồi.", "động năng.", "thế năng trọng trường.", "nhiệt năng."], c: 0, explain: "Lò xo bị biến dạng (nén hoặc dãn) sẽ dự trữ một năng lượng được gọi là thế năng đàn hồi." },
+                { q: "Năng lượng mà vật có được do chuyển động gọi là", a: ["động năng.", "thế năng.", "cơ năng.", "hóa năng."], c: 0, explain: "Năng lượng sinh ra do vật đang có tốc độ chuyển động được định nghĩa là động năng." },
+                { q: "Động năng của vật KHÔNG phụ thuộc vào", a: ["vị trí của vật.", "tốc độ của vật.", "khối lượng của vật.", "bình phương tốc độ."], c: 0, explain: "Động năng chỉ phụ thuộc vào khối lượng m và tốc độ v, không phụ thuộc vào vị trí (độ cao)." },
+                { q: "Khi vật nằm yên trên mặt đất (chọn mốc tại đất) thì", a: ["cả động năng và thế năng đều bằng 0.", "thế năng cực đại.", "động năng cực đại.", "cơ năng khác 0."], c: 0, explain: "Nằm yên: v = 0 (động năng = 0). Trên mặt đất: h = 0 so với mốc (thế năng = 0)." },
+                { q: "Một viên bi sắt 0,2 kg chuyển động với tốc độ 10 m/s. Động năng của nó là", a: ["10 J", "2 J", "20 J", "1 J"], c: 0, explain: "$W_đ = \\frac{1}{2}mv^2 = \\frac{1}{2} \\cdot 0,2 \\cdot 10^2 = 10$ J." },
+                { q: "Một chiếc lá đang rơi từ trên cây xuống. Quá trình này có sự chuyển hóa", a: ["Thế năng sang động năng.", "Động năng sang thế năng.", "Cơ năng sang hóa năng.", "Nhiệt năng sang động năng."], c: 0, explain: "Lá rơi: độ cao giảm (thế năng giảm), tốc độ tăng dần (động năng tăng)." },
+                { q: "Công thức thế năng trọng trường là $W_t = Ph$, trong đó $P$ là", a: ["Trọng lượng của vật.", "Khối lượng của vật.", "Áp suất của vật.", "Công suất của vật."], c: 0, explain: "Trong vật lý cơ học, kí hiệu P trong công thức thế năng là Trọng lượng của vật (N)." },
+                { q: "Một vật nặng 500g ở độ cao 2m so với mốc. Lấy 1kg = 10N. Thế năng vật là", a: ["10 J", "1000 J", "5 J", "1 J"], c: 0, explain: "Đổi m = 0,5 kg => P = 5 N. $W_t = Ph = 5 \\cdot 2 = 10$ J." },
+                { q: "Động năng của vật bằng 0 khi", a: ["vật đứng yên.", "vật ở độ cao cực đại.", "vật có khối lượng nhỏ.", "vật chuyển động đều."], c: 0, explain: "Động năng tỉ lệ với bình phương tốc độ. Khi vật đứng yên (v = 0) thì động năng bằng 0." }
+            ],
+            part2: [
+                {
+                    lead: "Một vận động viên nhảy cầu đang từ trên cao rơi xuống hồ nước. Hãy chọn ý Đúng / Sai.",
+                    options: [
+                        { text: "Độ cao của người so với mặt nước giảm dần.", type: true },
+                        { text: "Thế năng trọng trường của người tăng dần.", type: false },
+                        { text: "Động năng của người tăng dần khi rơi.", type: true },
+                        { text: "Có sự chuyển hóa từ động năng sang thế năng.", type: false }
+                    ],
+                    explain: "Người rơi xuống: độ cao giảm nên thế năng giảm. Tốc độ tăng do rơi tự do nên động năng tăng. Quá trình này chuyển hóa từ thế năng thành động năng."
+                },
+                {
+                    lead: "Xét một vật được ném thẳng đứng từ dưới lên cao (bỏ qua sức cản).",
+                    options: [
+                        { text: "Khi đi lên, tốc độ của vật giảm dần.", type: true },
+                        { text: "Động năng của vật đạt cực đại tại điểm cao nhất.", type: false },
+                        { text: "Thế năng trọng trường tăng dần khi lên cao.", type: true },
+                        { text: "Cơ năng của vật được bảo toàn.", type: true }
+                    ],
+                    explain: "Ném lên: v giảm (động năng giảm), h tăng (thế năng tăng). Tại điểm cao nhất, v=0 nên động năng nhỏ nhất. Bỏ qua sức cản thì cơ năng bảo toàn."
+                },
+                {
+                    lead: "Hai ô tô A và B có cùng khối lượng. Ô tô A chạy với tốc độ 40 km/h, ô tô B chạy với tốc độ 60 km/h.",
+                    options: [
+                        { text: "Động năng của ô tô B lớn hơn ô tô A.", type: true },
+                        { text: "Cả hai ô tô đều có thế năng trọng trường bằng nhau nếu cùng chạy trên đường nằm ngang.", type: true },
+                        { text: "Nếu cả hai dừng lại, động năng của chúng bằng 0.", type: true },
+                        { text: "Động năng tỉ lệ thuận với tốc độ v.", type: false }
+                    ],
+                    explain: "Xe B có v lớn hơn nên động năng lớn hơn. Cùng đường nằm ngang tức là cùng mốc h nên thế năng bằng nhau. Động năng tỉ lệ thuận với BÌNH PHƯƠNG tốc độ, không phải tốc độ."
+                },
+                {
+                    lead: "Một hòn đá được thả rơi từ đỉnh một tòa nhà cao tầng.",
+                    options: [
+                        { text: "Càng gần mặt đất, tốc độ hòn đá càng lớn.", type: true },
+                        { text: "Thế năng hòn đá nhỏ nhất khi ở đỉnh tòa nhà.", type: false },
+                        { text: "Tại mặt đất, động năng hòn đá là lớn nhất.", type: true },
+                        { text: "1 kg vật chất ứng với trọng lượng 10 N.", type: true }
+                    ],
+                    explain: "Càng gần đất v càng lớn (động năng lớn nhất tại đất), h càng nhỏ (thế năng lớn nhất ở đỉnh, nhỏ nhất ở đất)."
+                },
+                {
+                    lead: "Phát biểu về các đại lượng trong công thức $W_đ = \\frac{1}{2}mv^2$ và $W_t = Ph$.",
+                    options: [
+                        { text: "$W_đ$ và $W_t$ có cùng đơn vị là Joule (J).", type: true },
+                        { text: "$h$ là quãng đường vật đi được.", type: false },
+                        { text: "$m$ là khối lượng của vật tính bằng kg.", type: true },
+                        { text: "$P$ là áp suất của vật tác dụng lên mặt sàn.", type: false }
+                    ],
+                    explain: "Năng lượng có đơn vị chung là Joule. h là độ cao so với mốc thế năng, P là trọng lượng của vật."
+                },
+                {
+                    lead: "Khi đập một quả bóng xuống sàn nhà và bóng nảy lên.",
+                    options: [
+                        { text: "Khi bóng chạm sàn, động năng chuyển hóa thành thế năng đàn hồi tạm thời.", type: true },
+                        { text: "Khi nảy lên, động năng tăng dần.", type: false },
+                        { text: "Độ cao cực đại sau mỗi lần nảy thường giảm dần do ma sát.", type: true },
+                        { text: "Cơ năng luôn bảo toàn tuyệt đối trong thực tế.", type: false }
+                    ],
+                    explain: "Chạm sàn: bóng biến dạng nên sinh thế năng đàn hồi. Nảy lên: v giảm nên động năng giảm. Thực tế luôn có ma sát nên cơ năng không bảo toàn."
+                },
+                {
+                    lead: "Một con lắc lò xo treo thẳng đứng đang dao động.",
+                    options: [
+                        { text: "Tại vị trí thấp nhất, thế năng trọng trường nhỏ nhất.", type: true },
+                        { text: "Tại vị trí cân bằng, tốc độ vật là 0.", type: false },
+                        { text: "Có sự chuyển hóa liên tục giữa động năng và thế năng.", type: true },
+                        { text: "Động năng cực đại tại vị trí biên.", type: false }
+                    ],
+                    explain: "Vị trí thấp nhất h nhỏ nhất nên thế năng cực tiểu. Tại VTCB tốc độ lớn nhất. Tại biên v = 0 nên động năng bằng 0."
+                },
+                {
+                    lead: "So sánh năng lượng của chim đang bay và hòn đá đang nằm trên mặt đất.",
+                    options: [
+                        { text: "Chim đang bay vừa có động năng vừa có thế năng.", type: true },
+                        { text: "Hòn đá nằm yên trên đất KHÔNG có năng lượng cơ học.", type: true },
+                        { text: "Nếu hòn đá được nhấc lên cao 1m, nó sẽ có thế năng.", type: true },
+                        { text: "Chim bay càng nhanh thì thế năng càng lớn.", type: false }
+                    ],
+                    explain: "Đá nằm trên đất có v=0, h=0 nên không có cơ năng. Chim bay càng nhanh thì ĐỘNG NĂNG càng lớn, tốc độ không ảnh hưởng đến thế năng."
+                }
+            ],
+            part3: [
+                { q: "Tính động năng (J) của vật khối lượng 4 kg đang chạy với tốc độ 3 m/s.", ans: "18", explain: "$W_đ = \\frac{1}{2}mv^2 = \\frac{1}{2} \\cdot 4 \\cdot 3^2 = 18$ J." },
+                { q: "Một vật có trọng lượng 20 N ở độ cao 4 m. Tính thế năng trọng trường (J).", ans: "80", explain: "$W_t = Ph = 20 \\cdot 4 = 80$ J." },
+                { q: "Một vật có động năng 100 J, khối lượng 2 kg. Tốc độ của vật là bao nhiêu m/s?", ans: "10", explain: "Từ $W_đ = \\frac{1}{2}mv^2 \\Rightarrow 100 = \\frac{1}{2} \\cdot 2 \\cdot v^2 \\Rightarrow v^2 = 100 \\Rightarrow v = 10$ m/s." },
+                { q: "Vật nặng 5 kg rơi từ độ cao 10 m xuống đất. Thế năng tại đỉnh là bao nhiêu J? (1kg=10N)", ans: "500", explain: "Trọng lượng $P = 10m = 50$ N. Thế năng $W_t = Ph = 50 \\cdot 10 = 500$ J." },
+                { 
+                    q: "Nhận định về cơ năng:\n1. Động năng tỉ lệ thuận với v.\n2. Thế năng tỉ lệ thuận với độ cao h.\n3. Đơn vị năng lượng là J.\n4. Vật đứng yên trên đất có $W_đ = 0$.\n5. Cơ năng là tổng động năng và thế năng.\n6. $W_đ$ tỉ lệ nghịch với m.\n7. Tốc độ tăng 3 lần thì $W_đ$ tăng 6 lần.\n8. Thế năng KHÔNG phụ thuộc mốc.\nChọn các nhận định ĐÚNG rồi ghi đáp án bằng dãy số tăng dần.",
+                    ans: "2345", 
+                    explain: "Ý 1 sai vì tỉ lệ với $v^2$; ý 6 sai vì $W_đ$ tỉ lệ thuận với m; ý 7 sai vì v tăng 3 thì $W_đ$ tăng 9 lần; ý 8 sai vì thế năng có phụ thuộc mốc." 
+                },
+                {
+                    q: "Sắp xếp các nhận định đúng về động năng:\n1. Động năng phụ thuộc vào khối lượng.\n2. Động năng phụ thuộc vào độ cao.\n3. Động năng tỉ lệ với bình phương tốc độ.\n4. Đơn vị của động năng là Watt.\n5. $W_đ = \\frac{1}{2}mv^2$.\n6. Động năng luôn bằng 0.\n7. Động năng là năng lượng do chuyển động.\n8. Tốc độ v tính bằng km/h trong công thức chuẩn.\nChọn các nhận định ĐÚNG rồi ghi đáp án bằng dãy số tăng dần.",
+                    ans: "1357",
+                    explain: "Ý 2 sai vì phụ thuộc tốc độ; ý 4 sai vì đơn vị là J; ý 6 sai; ý 8 sai vì v tính bằng m/s theo chuẩn hệ SI."
+                },
+                { q: "Một quả bóng 0,5 kg có động năng 4 J. Tính tốc độ (m/s) của quả bóng.", ans: "4", explain: "$W_đ = \\frac{1}{2}mv^2 \\Rightarrow 4 = \\frac{1}{2} \\cdot 0,5 \\cdot v^2 \\Rightarrow v^2 = 16 \\Rightarrow v = 4$ m/s." },
+                { q: "Vật có trọng lượng 50 N, thế năng là 250 J. Tính độ cao (m) của vật.", ans: "5", explain: "$W_t = Ph \\Rightarrow 250 = 50 \\cdot h \\Rightarrow h = 5$ m." }
+            ]
+        };
+
+        // --- Game State ---
+        let currentQuestions = [];
+        let userAnswers = [];
+        let currentIndex = 0;
+        let timer = null;
+        let timeLeft = 0;
+        let student = {};
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function startGame() {
+            student = {
+                name: document.getElementById('input-name').value || "Thí sinh",
+                sbd: document.getElementById('input-sbd').value || "000",
+                class: document.getElementById('input-class').value || "9A",
+                school: document.getElementById('input-school').value || "THCS"
+            };
+
+            // Trích xuất ngẫu nhiên và XÁO TRỘN ĐÁP ÁN Phần I
+            const p1 = shuffle([...BANK.part1]).slice(0, 12).map(q => {
+                let optionsWithFlag = q.a.map((optText, index) => ({ text: optText, isCorrect: index === q.c }));
+                optionsWithFlag = shuffle(optionsWithFlag); // Xáo trộn A, B, C, D
+                const newCorrectIndex = optionsWithFlag.findIndex(o => o.isCorrect);
+                return { ...q, a: optionsWithFlag.map(o => o.text), c: newCorrectIndex, type: 'mc' };
+            });
+
+            // Trích xuất ngẫu nhiên và XÁO TRỘN ĐÁP ÁN Phần II
+            const p2 = shuffle([...BANK.part2]).slice(0, 4).map(q => {
+                return { ...q, options: shuffle([...q.options]), type: 'tf' };
+            });
+
+            // Trích xuất ngẫu nhiên Phần III
+            const p3 = shuffle([...BANK.part3]).slice(0, 4).map(q => ({...q, type: 'sa'}));
+            
+            currentQuestions = [...p1, ...p2, ...p3];
+            userAnswers = new Array(20).fill(null);
+            currentIndex = 0;
+
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('student-info-display').innerText = `${student.name} - SBD: ${student.sbd} - Lớp: ${student.class}`;
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = currentQuestions[currentIndex];
+            const container = document.getElementById('question-container');
+            let html = `<div class="mb-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold uppercase">Câu ${currentIndex + 1} / 20</span></div>`;
+            
+            if (q.type === 'mc') {
+                html += `<div class="text-lg font-medium mb-4">${q.q}</div><div class="space-y-3">`;
+                q.a.forEach((opt, idx) => {
+                    const selected = userAnswers[currentIndex] === idx ? 'option-selected' : '';
+                    html += `<div onclick="selectMC(${idx})" class="option-card p-3 rounded-lg border ${selected}">${String.fromCharCode(65+idx)}. ${opt}</div>`;
+                });
+                html += `</div>`;
+                startTimer(90);
+            } else if (q.type === 'tf') {
+                html += `<div class="text-lg font-medium mb-4">${q.lead}</div><div class="space-y-4">`;
+                const saved = userAnswers[currentIndex] || [null, null, null, null];
+                q.options.forEach((opt, idx) => {
+                    const char = String.fromCharCode(97+idx);
+                    html += `
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <span class="text-sm flex-1">${char}) ${opt.text}</span>
+                            <div class="flex gap-2 ml-4">
+                                <button onclick="selectTF(${idx}, true)" class="w-16 py-1 rounded text-xs font-bold ${saved[idx] === true ? 'bg-green-500 text-white' : 'bg-white border border-gray-300'}">ĐÚNG</button>
+                                <button onclick="selectTF(${idx}, false)" class="w-16 py-1 rounded text-xs font-bold ${saved[idx] === false ? 'bg-red-500 text-white' : 'bg-white border border-gray-300'}">SAI</button>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                startTimer(120);
+            } else if (q.type === 'sa') {
+                html += `<div class="text-lg font-medium mb-4">${q.q}</div>`;
+                const val = userAnswers[currentIndex] || "";
+                html += `<input type="text" id="sa-input" maxlength="4" oninput="saveSA(this.value)" value="${val}" class="w-full p-3 border-2 border-green-200 rounded-lg text-center text-2xl font-bold focus:border-green-500 outline-none" placeholder="...">`;
+                startTimer(120);
+            }
+
+            container.innerHTML = html;
+            document.getElementById('btn-back').disabled = currentIndex === 0;
+            document.getElementById('btn-next').innerText = currentIndex === 19 ? "NỘP BÀI" : "TIẾP THEO";
+            
+            // Re-render toán học bằng MathJax 3
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([container]).catch((err) => console.log(err.message));
+            }
+        }
+
+        function startTimer(seconds) {
+            if (timer) clearInterval(timer);
+            timeLeft = seconds;
+            const bar = document.getElementById('timer-bar');
+            const display = document.getElementById('timer-display');
+            
+            const tick = () => {
+                display.innerText = `Thời gian: ${timeLeft}s`;
+                const pct = (timeLeft / seconds) * 100;
+                bar.style.width = pct + "%";
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    nextQuestion();
+                }
+                timeLeft--;
+            };
+            tick();
+            timer = setInterval(tick, 1000);
+        }
+
+        function selectMC(idx) {
+            userAnswers[currentIndex] = idx;
+            playSound('ping');
+            showQuestion();
+        }
+
+        function selectTF(idx, val) {
+            if (!userAnswers[currentIndex]) userAnswers[currentIndex] = [null, null, null, null];
+            userAnswers[currentIndex][idx] = val;
+            playSound('ping');
+            showQuestion();
+        }
+
+        function saveSA(val) {
+            userAnswers[currentIndex] = val.trim();
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < 19) {
+                currentIndex++;
+                showQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            clearInterval(timer);
+            playSound('bell');
+            
+            let s1 = 0, s2 = 0, s3 = 0;
+            
+            currentQuestions.forEach((q, i) => {
+                const ans = userAnswers[i];
+                if (q.type === 'mc') {
+                    if (ans === q.c) s1 += 0.25;
+                } else if (q.type === 'tf') {
+                    if (ans) {
+                        let count = 0;
+                        q.options.forEach((opt, idx) => {
+                            if (ans[idx] === opt.type) count++;
+                        });
+                        if (count === 1) s2 += 0.0625;
+                        else if (count === 2) s2 += 0.125;
+                        else if (count === 3) s2 += 0.25;
+                        else if (count === 4) s2 += 0.5;
+                    }
+                } else if (q.type === 'sa') {
+                    if (ans === q.ans) s3 += 0.5;
+                }
+            });
+
+            const total = s1 + s2 + s3;
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-results').classList.remove('hidden');
+            
+            document.getElementById('total-score').innerText = total.toFixed(1) + " / 7.0";
+            document.getElementById('score-p1').innerText = s1.toFixed(2);
+            document.getElementById('score-p2').innerText = s2.toFixed(2);
+            document.getElementById('score-p3').innerText = s3.toFixed(2);
+
+            let rank = "CHƯA ĐẠT";
+            if (total >= 6) rank = "XUẤT SẮC";
+            else if (total >= 5) rank = "GIỎI";
+            else if (total >= 4) rank = "KHÁ";
+            else if (total >= 3) rank = "ĐẠT";
+            
+            document.getElementById('result-rank').innerText = rank;
+        }
+
+        function showReview() {
+            const container = document.getElementById('review-container');
+            container.innerHTML = '<h3 class="text-xl font-bold mb-4 text-left">Chi tiết bài làm</h3>';
+            container.classList.remove('hidden');
+
+            currentQuestions.forEach((q, i) => {
+                const ans = userAnswers[i];
+                let itemHtml = `<div class="card p-5 mb-6 border-l-4 text-left `;
+
+                if (q.type === 'mc') {
+                    const isCorrect = ans === q.c;
+                    itemHtml += isCorrect ? 'border-green-500' : 'border-red-500';
+                    itemHtml += `">
+                        <div class="font-bold mb-3">Câu ${i+1}: ${q.q}</div>
+                        <div class="space-y-2 text-sm">`;
+                    
+                    q.a.forEach((optText, optIdx) => {
+                        let bgStyle = "bg-gray-50 border-gray-200 text-gray-700";
+                        if (optIdx === q.c) bgStyle = "bg-green-100 border-green-400 font-bold text-green-900"; // Đáp án đúng
+                        else if (optIdx === ans && ans !== q.c) bgStyle = "bg-red-100 border-red-400 font-bold text-red-900"; // Sai
+
+                        itemHtml += `<div class="p-2 border rounded ${bgStyle}">${String.fromCharCode(65+optIdx)}. ${optText}</div>`;
+                    });
+                    
+                    itemHtml += `</div>
+                        <div class="mt-4 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200">
+                            <b>Giải thích:</b> ${q.explain || "Đáp án chính xác là " + String.fromCharCode(65+q.c)}
+                        </div>`;
+
+                } else if (q.type === 'tf') {
+                    itemHtml += 'border-blue-500';
+                    itemHtml += `">
+                        <div class="font-bold mb-3">Câu ${i+1}: ${q.lead}</div>
+                        <div class="space-y-2 text-sm">`;
+                    
+                    q.options.forEach((opt, idx) => {
+                        const userVal = ans ? ans[idx] : null;
+                        const isCorrect = userVal === opt.type;
+                        const char = String.fromCharCode(97+idx);
+                        
+                        let bgStyle = isCorrect ? "bg-green-50 border-green-200" : (userVal !== null ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200");
+                        
+                        itemHtml += `<div class="p-2 border rounded ${bgStyle}">
+                            <div class="mb-1">${char}) ${opt.text}</div>
+                            <div class="text-xs">
+                                Học sinh chọn: <b class="${userVal===null?'text-gray-500':(userVal?'text-blue-600':'text-blue-600')}">${userVal === null ? 'Bỏ trống' : (userVal ? 'ĐÚNG' : 'SAI')}</b> 
+                                | Đáp án: <b class="text-green-700">${opt.type ? 'ĐÚNG' : 'SAI'}</b>
+                            </div>
+                        </div>`;
+                    });
+
+                    itemHtml += `</div>
+                        <div class="mt-4 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200">
+                            <b>Giải thích:</b> ${q.explain || "Học sinh đối chiếu các nhận định đúng/sai với lý thuyết."}
+                        </div>`;
+
+                } else if (q.type === 'sa') {
+                    const isCorrect = ans === q.ans;
+                    itemHtml += isCorrect ? 'border-green-500' : 'border-red-500';
+                    itemHtml += `">
+                        <div class="font-bold mb-3">Câu ${i+1}: ${q.q}</div>
+                        <div class="flex gap-4 mb-2">
+                            <div class="text-sm p-2 bg-gray-100 rounded border flex-1">Học sinh nhập: <b class="${isCorrect?'text-green-600':'text-red-600'}">${ans || 'Bỏ trống'}</b></div>
+                            <div class="text-sm p-2 bg-green-100 rounded border border-green-300 flex-1">Đáp án đúng: <b class="text-green-700">${q.ans}</b></div>
+                        </div>
+                        <div class="mt-2 p-3 bg-blue-50 text-blue-900 text-sm rounded border border-blue-200">
+                            <b>Giải thích:</b> ${q.explain || "Đáp án là kết quả chính xác dựa trên công thức hoặc suy luận."}
+                        </div>`;
+                }
+
+                itemHtml += `</div>`;
+                container.innerHTML += itemHtml;
+            });
+            
+            // Re-render toán học
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([container]).catch((err) => console.log(err.message));
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('screen-results').classList.add('hidden');
+            document.getElementById('screen-login').classList.remove('hidden');
+            document.getElementById('review-container').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
